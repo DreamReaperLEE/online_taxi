@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>在线约车系统</title>
+
+    <!-- Favicon and touch icons -->
+    <link rel="shortcut icon" href="/assets/ico/favicon.ico" type="image/x-icon" />
+
+    <!-- Css files -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/jquery.mmenu.css" rel="stylesheet">
+    <link href="/assets/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/assets/plugins/jquery-ui/css/jquery-ui-1.10.4.min.css" rel="stylesheet">
+    <link href="/assets/css/style.min.css" rel="stylesheet">
+    <link href="/assets/css/add-ons.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+
+    <!-- JS 函数 -->
+    <script>
+        function del() {
+            var msg = "您真的确定要删除吗？\n\n请确认！";
+            if (confirm(msg)==true){
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+        function end() {
+            var msg = "确定已结算吗？\n\n请确认！";
+            if (confirm(msg)==true){
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+        function changecompany(){
+
+            var optionJson=[];
+            $.ajax({
+                type:"get",
+                url:"/kefu/order/ordercompanymanage?companyid="+document.getElementById("companyid").value,
+                data:{},
+                async: false,
+                success:function (data) {
+                    var str="";
+                    for(var p in data){
+                        str=str+"<tr>";
+                        str=str+"<td>"+data[p].id+"</td>";
+                        str=str+"<td>"+data[p].clName+"</td>";
+                        str=str+"<td>"+data[p].coName+"</td>";
+                        str=str+"<td>"+data[p].orTime+"</td>";
+                        str=str+"<td>"+data[p].orStart+"</td>";
+                        str=str+"<td>"+data[p].orEnd+"</td>";
+                        str=str+"<td>"+data[p].orPrice+"</td>";
+                        if(data[p].orState==0){
+                            str=str+"<td> <span class=\"label label-default\">已下单</span> </td>";
+                        }else if(data[p].orState==1){
+                            str=str+"<td> <span class=\"label label-info\">正在进行</span> </td>";
+                        }else{
+                            str=str+"<td> <span class=\"label label-success\">已结束</span> </td>";
+                        }
+                        if(data[p].orCheck==0){
+                            str=str+"<td> <span class=\"label label-default\">未处理</span> </td>";
+                        }else if(data[p].orCheck==1){
+                            str=str+"<td> <span class=\"label label-success\">已结算</span> </td>";
+                        }
+                        str=str+"<td><a href=\"/kefu/order/cancelorder?id="+data[p].id+"\" onclick=\"return del();\" ><button type=\"button\" class=\"btn btn-success\">撤销</button></a>";
+                        if(data[p].orCheck==0){
+                            str=str+"<a href=\"/kefu/order/orderend?id="+data[p].id+"\" onclick=\"return end();\"><button type=\"button\" class=\"btn btn-info\">结算</button></a></td>";
+                        }
+                        else{
+                            str=str+"</td>";
+                        }
+
+                        str=str+"</tr>";
+                    }
+                    document.getElementById("dataTable").innerHTML=str;
+                }
+            });
+        }
+    </script>
+
+</head>
+
+<body>
+<div th:include="kefu/top :: top">
+</div>
+
+<div class="container-fluid content">
+
+    <div class="row">
+
+        <div th:include="kefu/left :: left">
+        </div>
+
+        <!-- start: Content -->
+        <div class="main ">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h3 class="page-header"><i class="fa fa-random"></i>订单管理</h3>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/kefu/index">主页</a></li>
+                        <li><i class="fa fa-list-alt"></i><a href="#">订单管理</a></li>
+                    </ol>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="alert alert-danger text-center" role="alert" th:text="${fail}" th:if="${fail!=null}"></div>
+                <div class="alert alert-success text-center" role="alert" th:text="${success}" th:if="${success!=null}"></div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <h2><i class="fa fa-table red"></i><span class="break"></span><strong>订单列表</strong></h2>
+                            </div>
+                            <div class="col-sm-1 col-sm-offset-1">
+                                <p class="text-center">所属集团</p>
+                            </div>
+                            <div class="col-sm-1">
+                                <select id="companyid"  onchange="changecompany()">
+                                    <option value="0" selected="selected">全部</option>
+                                    <option th:each="each : ${companies}" th:value="${each.id}" th:text="${each.coName}" >公司名称</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 col-sm-offset-1">
+                                <a href="/kefu/order/download"><button type="button" class="btn btn-primary">导出未结算订单到Excel</button></a>
+                            </div>
+                        </div><div class="divider"></div>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-bordered table-striped table-condensed table-hover">
+                            <thead>
+                            <tr>
+                                <th>编号</th>
+                                <th>客户姓名</th>
+                                <th>所属集团</th>
+                                <th>用车时间</th>
+                                <th>出发地</th>
+                                <th>目的地</th>
+                                <th>订单价格</th>
+                                <th>订单状态</th>
+                                <th>单据状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="dataTable">
+                            <tr th:each="each : ${orderClients}" id="OrderClientList">
+                                <td th:text="${each.id}"></td>
+                                <td th:text="${each.clName}"></td>
+                                <td th:text="${each.coName}"></td>
+                                <td th:text="${each.orTime}"></td>
+                                <td th:text="${each.orStart}"></td>
+                                <td th:text="${each.orEnd}"></td>
+                                <td th:text="${each.orPrice}"></td>
+                                <td>
+                                    <span class="label label-default" th:if="${each.orState eq 0}">已下单</span>
+                                    <span class="label label-info" th:if="${each.orState eq 1}">正在进行</span>
+                                    <span class="label label-success" th:if="${each.orState eq 2}">已完成</span>
+                                </td>
+                                <td>
+                                    <span class="label label-default" th:if="${each.orCheck eq 0}">未处理</span>
+                                    <span class="label label-success" th:if="${each.orCheck eq 1}">已结算</span>
+                                </td>
+                                <td>
+                                    <a th:href="'/kefu/order/cancelorder?id=' + ${each.id}" onclick="return del();" ><button type="button" class="btn btn-success">撤销</button></a>
+                                    <a th:if="${each.orCheck eq 0}" th:href="'/kefu/order/orderend?id='+${each.id}" onclick="return end();"><button type="button" class="btn btn-info">结算</button></a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- end: Content -->
+        <br><br><br>
+
+    </div><!--/container-->
+
+
+</div>
+
+<div class="clearfix"></div>
+
+
+
+<!-- start: JavaScript-->
+<!--[if !IE]>-->
+
+<script src="/assets/js/jquery-2.1.1.min.js"></script>
+
+<!--<![endif]-->
+
+<!--[if IE]>
+
+<script src="/assets/js/jquery-1.11.1.min.js"></script>
+
+<![endif]-->
+
+<!--[if !IE]>-->
+
+<script type="text/javascript">
+    window.jQuery || document.write("<script src='/assets/js/jquery-2.1.1.min.js'>"+"<"+"/script>");
+</script>
+
+<!--<![endif]-->
+
+<!--[if IE]>
+
+<script type="text/javascript">
+    window.jQuery || document.write("<script src='/assets/js/jquery-1.11.1.min.js'>"+"<"+"/script>");
+</script>
+
+<![endif]-->
+<script src="/assets/js/jquery-migrate-1.2.1.min.js"></script>
+<script src="/assets/js/bootstrap.min.js"></script>
+
+
+<!-- page scripts -->
+<script src="/assets/plugins/jquery-ui/js/jquery-ui-1.10.4.min.js"></script>
+<script src="/assets/js/jquery.easy-pie-chart.min.js"></script>
+
+<!-- theme scripts -->
+<script src="/assets/js/SmoothScroll.js"></script>
+<script src="/assets/js/jquery.mmenu.min.js"></script>
+<script src="/assets/js/core.min.js"></script>
+
+<!-- inline scripts related to this page -->
+<script src="/assets/js/pages/page-profile.js"></script>
+
+<!-- end: JavaScript-->
+
+</body>
+</html>

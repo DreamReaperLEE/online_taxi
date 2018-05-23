@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>在线约车系统</title>
+
+    <!-- Favicon and touch icons -->
+    <link rel="shortcut icon" href="/assets/ico/favicon.ico" type="image/x-icon" />
+
+    <!-- Css files -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/jquery.mmenu.css" rel="stylesheet">
+    <link href="/assets/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/assets/plugins/jquery-ui/css/jquery-ui-1.10.4.min.css" rel="stylesheet">
+    <link href="/assets/css/style.min.css" rel="stylesheet">
+    <link href="/assets/css/add-ons.min.css" rel="stylesheet">
+    <style type="text/css">
+        body, html {width: 100%;height: 100%; margin:0;font-family:"微软雅黑";}
+        #allmap{height:600px;width:100%;}
+        #r-result,#r-result table{width:100%;}
+        #allmap{ z-index:10000;}#wai{padding: 6px;box-shadow: 1px 1px 3px #000;}
+    </style>
+
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=mue30clIcd2lBh90kl8d67YqANBBU28I"></script>
+    <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+
+</head>
+
+<body>
+<div th:include="kefu/top :: top">
+</div>
+
+<div class="container-fluid content">
+
+    <div class="row">
+
+        <div th:include="kefu/left :: left">
+        </div>
+
+        <!-- start: Content -->
+        <div class="main ">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h3 class="page-header"><i class="fa fa-random"></i>司机管理</h3>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/kefu/index">主页</a></li>
+                        <li><i class="fa fa-list-alt"></i><a href="#">司机管理</a></li>
+                    </ol>
+                </div>
+            </div>
+            <button class="btn btn-success"  data-toggle="modal" data-target="#addcompany">用户验证</button>
+            <div id="wai"><div id="allmap"></div></div>
+            <br />
+            <span id = "tooltip">总路程为：</span><span id = "tooltip_num"></span><span id = "tooltip_after">公里</span>
+            <div id="driving_way">
+                出发地：<input id="start" />目的地：<input id="end" />
+                <select>
+                    <option value="0">最少时间</option>
+                    <option value="1">最短距离</option>
+                    <option value="2">避开高速</option>
+                </select>
+                <input type="button" id="result" value="查询"/>
+            </div>
+            <div id="r-result"></div>
+
+            <script type="text/javascript">
+                // 百度地图API功能
+                var map = new BMap.Map("allmap");
+                var start = document.getElementById("start").value;
+                var end = document.getElementById("end").value;
+                map.centerAndZoom(new BMap.Point(126.69488, 45.779407), 11);
+
+                var opts = {
+                    width : 250,     // 信息窗口宽度
+                    height: 80,     // 信息窗口高度
+                    title : "司机信息" , // 信息窗口标题
+                    enableMessage:true//设置允许信息窗发送短息
+                };
+
+
+               function addClickHandler(content,marker){
+                   marker.addEventListener("click",function(e){
+                       openInfo(content,e)}
+                   );
+               }
+               function openInfo(content,e){
+                   var p = e.target;
+                   var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+                   var infoWindow = new BMap.InfoWindow(content,opts);  // 创建信息窗口对象
+                   map.openInfoWindow(infoWindow,point); //开启信息窗口
+               }
+
+
+
+                //三种驾车策略：最少时间，最短距离，避开高速
+                var routePolicy = [BMAP_DRIVING_POLICY_LEAST_TIME,BMAP_DRIVING_POLICY_LEAST_DISTANCE,BMAP_DRIVING_POLICY_AVOID_HIGHWAYS];
+                $("#result").click(function(){
+                    var start = document.getElementById("start").value;
+                    var end = document.getElementById("end").value;
+                    if( start == "" || end == "" ) {
+                        alert("输入有误！")
+                    }
+                    map.clearOverlays();
+
+                    var i=$("#driving_way select").val();
+                    search(start,end,routePolicy[i]);
+                    function search(start,end,route){
+
+                        var searchComplete = function (results){
+                            if (driving.getStatus() != BMAP_STATUS_SUCCESS){
+                                return ;
+                            }
+                            var plan = results.getPlan(0);              //获取时间
+
+                            //出发地目的地GPS地址
+                            var gstart=results.getStart().point;
+                            var gend=results.getEnd().point;
+
+                            var str="";
+                            str=str+gstart.lat+","+gstart.lng;
+                            document.getElementById("orSgps").value=str;
+                            str=""+gend.lat+","+gend.lng;
+                            document.getElementById("orEgps").value=str;
+
+                            output = plan.getDistance(true).slice(0,this.length-3);             //获取距离
+
+                            $.get('/kefu/order/getprice?distance=' + output ,function(resp){
+                                console.log(resp);
+                                document.getElementById("tooltip_after").innerText += "，价格约为" + resp + "元";
+                                document.getElementById("or_price").value =resp;
+                                document.getElementById("or_start").value=start;
+                                document.getElementById("or_end").value =end;
+                            })
+
+                            var data_info=[];
+                            $.ajax({
+                                type:"get",
+                                url:"/kefu/order/getonline",
+                                data:{},
+                                async: false,
+                                success:function (data) {
+                                    for(var p in data){
+                                        var temp=[];
+                                        temp[0]=data[p].orEgps;
+                                        temp[1]=data[p].orSgps;
+                                        var str="司机姓名:"+data[p].clName+" </br>"+
+                                            "最后更新位置时间："+data[p].orTime;
+                                        temp[2]=str;
+                                        data_info[p]=temp;
+                                    }
+                                }
+                            });
+
+
+
+
+                            for(var i=0;i<data_info.length;i++){
+                                var marker = new BMap.Marker(new BMap.Point(data_info[i][0],data_info[i][1]));  // 创建标注
+                                var content = data_info[i][2];
+                                map.addOverlay(marker);               // 将标注添加到地图中
+                                addClickHandler(content,marker);
+                            }
+                        }
+
+                        var driving = new BMap.DrivingRoute(map, {renderOptions:{map: map, autoViewport: true},policy: route,onSearchComplete: searchComplete,
+                            onPolylinesSet: function(){
+                                document.getElementById("tooltip_num").innerText = output;
+                            }});
+                        driving.search(start,end);
+                    }
+                });
+
+                function check_client(){
+
+                        var optionJson=[];
+                        var tel=document.getElementById("cl_tel").value
+                        $.ajax({
+                            type:"get",
+                            url:"/kefu/order/checkclient?tel="+tel,
+                            data:{},
+                            async: false,
+                            success:function (data) {
+                                optionJson=data;
+                                if(optionJson.exist=="true"){
+                                    alert("客户姓名："+optionJson.name)
+                                    document.getElementById("or_name").value=optionJson.name;
+                                    document.getElementById("or_cid").value=optionJson.id;
+                                }
+                                else{
+                                    alert("不存在该手机号的用户");
+                                }
+                            }
+                        });
+                }
+                function changedriver(){
+
+                    var optionJson=[];
+                    $.ajax({
+                        type:"get",
+                        url:"/kefu/order/getdriver?type="+document.getElementById("emCartype").value,
+                        data:{},
+                        async: false,
+                        success:function (data) {
+                            var str="";
+                            for(var p in data){
+                                str=str+"<option "+"value ="+data[p].id+">";
+                                str=str+data[p].emName+"</option>";
+                            }
+                            document.getElementById("or_eid").innerHTML=str;
+                        }
+                    });
+                }
+
+                var output = ""
+
+            </script>
+
+            <div class="row profile">
+
+                <div class="col-md-offset-1 col-md-10">
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">预约下单</h3>
+                        </div>
+                        <div class="panel-body">
+                            <form class="form-horizontal" th:action="@{/kefu/order/setorder}" method="post">
+                                <div class="form-group">
+                                    <label class="control-label">客户姓名</label>
+                                    <input type="text" id="or_name" class="form-control" value="" disabled>
+                                    <input type="hidden" id="or_cid" name="orCid" class="form-control" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">出发地</label>
+                                    <input type="text" class="form-control" name="orStart" id="or_start" value="">
+                                    <input type="hidden" class="form-control" name="orSgps" id="orSgps" value="">
+                                    <input type="hidden" class="form-control" name="orEgps" id="orEgps" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">目的地</label>
+                                    <input type="text" class="form-control" name="orEnd" id="or_end" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">用车日期</label>
+                                    <input type="date" class="form-control" name="or_date" id="or_date" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">用车时间</label>
+                                    <input type="time" class="form-control" name="orTime" id="or_time" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">指派车型</label>
+                                    <select class="form-control" name="emCartype" id="emCartype" onchange="changedriver()">
+                                        <option th:each="each : ${cars}" th:value="${each.id}" th:text="${each.caType}" >车型</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">指派司机</label>
+                                    <select class="form-control" name="orEid" id="or_eid">
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">订单价格</label>
+                                    <input type="text" class="form-control" name="orPrice" id="or_price" value="">
+                                </div>
+
+                                <hr>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <button type="submit" class="btn btn-success">提交</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div><!--/.col-->
+
+            </div>
+
+        </div>
+        <!-- end: Content -->
+        <br><br><br>
+
+    </div><!--/container-->
+
+
+</div>
+
+<div class="clearfix"></div>
+
+<div class="modal fade" id="addcompany" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel1">用户验证</h4>
+            </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label">用户手机号</label>
+                        <input type="text" class="form-control" name="cl_tel" id="cl_tel">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-success" onclick="check_client()">提交</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- start: JavaScript-->
+<!--[if !IE]>-->
+
+<script src="/assets/js/jquery-2.1.1.min.js"></script>
+
+<!--<![endif]-->
+
+<!--[if IE]>
+
+<script src="/assets/js/jquery-1.11.1.min.js"></script>
+
+<![endif]-->
+
+<!--[if !IE]>-->
+
+<script type="text/javascript">
+    window.jQuery || document.write("<script src='/assets/js/jquery-2.1.1.min.js'>"+"<"+"/script>");
+</script>
+
+<!--<![endif]-->
+
+<!--[if IE]>
+
+<script type="text/javascript">
+    window.jQuery || document.write("<script src='/assets/js/jquery-1.11.1.min.js'>"+"<"+"/script>");
+</script>
+
+<![endif]-->
+<script src="/assets/js/jquery-migrate-1.2.1.min.js"></script>
+<script src="/assets/js/bootstrap.min.js"></script>
+
+
+<!-- page scripts -->
+<script src="/assets/plugins/jquery-ui/js/jquery-ui-1.10.4.min.js"></script>
+<script src="/assets/js/jquery.easy-pie-chart.min.js"></script>
+
+<!-- theme scripts -->
+<script src="/assets/js/SmoothScroll.js"></script>
+<script src="/assets/js/jquery.mmenu.min.js"></script>
+<script src="/assets/js/core.min.js"></script>
+
+<!-- inline scripts related to this page -->
+<script src="/assets/js/pages/page-profile.js"></script>
+
+<!-- end: JavaScript-->
+
+</body>
+</html>

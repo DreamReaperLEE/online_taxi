@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="heu.iot.Dao.CarMapper">
+  <resultMap id="BaseResultMap" type="heu.iot.Model.Car">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="ca_type" jdbcType="VARCHAR" property="caType" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, ca_type
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from car
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="showAll" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from car
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from car
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="heu.iot.Model.Car">
+    insert into car (id, ca_type)
+    values (#{id,jdbcType=INTEGER}, #{caType,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="heu.iot.Model.Car">
+    insert into car
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="caType != null">
+        ca_type,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="caType != null">
+        #{caType,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="heu.iot.Model.Car">
+    update car
+    <set>
+      <if test="caType != null">
+        ca_type = #{caType,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="heu.iot.Model.Car">
+    update car
+    set ca_type = #{caType,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

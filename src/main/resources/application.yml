@@ -1,0 +1,48 @@
+#spring config
+spring:
+  aop:
+    auto: true
+  http:
+    multipart:
+      maxFileSize: 100MB
+      maxRequestSize: 1000MB
+  datasource:
+    name: iot
+    url: jdbc:mysql://localhost:3306/yueche
+    driverClassName: com.mysql.jdbc.Driver
+    username: root
+    password: root
+    type: com.alibaba.druid.pool.DruidDataSource
+    maxActive: 1000
+    initialSize: 5
+    maxWait: 60000
+    minIdle: 1
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    maxOpenPreparedStatements: 20
+  thymeleaf:
+    cache: false
+    mode: LEGACYHTML5
+# MyBatis
+mybatis:
+  type-aliases-package: heu.iot.Model
+  mapper-locations: classpath:/mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+#PageHelper
+pagehelper:
+  offsetAsPageNum: true
+  rowBoundsWithCount: true
+  reasonable: true
+server:
+  port: 8088
+pageNum: 10
+#Myconfig
+#filePath: src/main/resources/static/img/s
+#pageNum: 5
+#commentPageNum: 8

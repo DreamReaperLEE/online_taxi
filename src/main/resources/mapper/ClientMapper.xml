@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="heu.iot.Dao.ClientMapper">
+  <resultMap id="BaseResultMap" type="heu.iot.Model.Client">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="cl_name" jdbcType="VARCHAR" property="clName" />
+    <result column="cl_tel" jdbcType="VARCHAR" property="clTel" />
+    <result column="cl_company" jdbcType="INTEGER" property="clCompany" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, cl_name, cl_tel, cl_company
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from client
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="selectByCompanyId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from client
+    where cl_company = #{cl_company,jdbcType=INTEGER}
+  </select>
+  <select id="selectByTel" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from client
+    where cl_tel = #{cl_tel,jdbcType=VARCHAR}
+  </select>
+  <select id="clientExist" parameterType="java.lang.String" resultType="java.lang.Integer">
+    select
+    count(cl_tel)
+    from client
+    where cl_tel = #{cl_tel,jdbcType=VARCHAR}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from client
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="heu.iot.Model.Client">
+    insert into client (id, cl_name, cl_tel, 
+      cl_company)
+    values (#{id,jdbcType=INTEGER}, #{clName,jdbcType=VARCHAR}, #{clTel,jdbcType=VARCHAR}, 
+      #{clCompany,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="heu.iot.Model.Client">
+    insert into client
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="clName != null">
+        cl_name,
+      </if>
+      <if test="clTel != null">
+        cl_tel,
+      </if>
+      <if test="clCompany != null">
+        cl_company,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="clName != null">
+        #{clName,jdbcType=VARCHAR},
+      </if>
+      <if test="clTel != null">
+        #{clTel,jdbcType=VARCHAR},
+      </if>
+      <if test="clCompany != null">
+        #{clCompany,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="heu.iot.Model.Client">
+    update client
+    <set>
+      <if test="clName != null">
+        cl_name = #{clName,jdbcType=VARCHAR},
+      </if>
+      <if test="clTel != null">
+        cl_tel = #{clTel,jdbcType=VARCHAR},
+      </if>
+      <if test="clCompany != null">
+        cl_company = #{clCompany,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="heu.iot.Model.Client">
+    update client
+    set cl_name = #{clName,jdbcType=VARCHAR},
+      cl_tel = #{clTel,jdbcType=VARCHAR},
+      cl_company = #{clCompany,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

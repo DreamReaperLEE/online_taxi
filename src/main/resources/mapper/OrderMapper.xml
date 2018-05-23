@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="heu.iot.Dao.OrderMapper">
+  <resultMap id="BaseResultMap" type="heu.iot.Model.Order">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="or_cid" jdbcType="INTEGER" property="orCid" />
+    <result column="or_eid" jdbcType="INTEGER" property="orEid" />
+    <result column="or_time" jdbcType="VARCHAR" property="orTime" />
+    <result column="or_start" jdbcType="VARCHAR" property="orStart" />
+    <result column="or_end" jdbcType="VARCHAR" property="orEnd" />
+    <result column="or_sgps" jdbcType="VARCHAR" property="orSgps" />
+    <result column="or_egps" jdbcType="VARCHAR" property="orEgps" />
+    <result column="or_price" jdbcType="REAL" property="orPrice" />
+    <result column="or_state" jdbcType="INTEGER" property="orState" />
+    <result column="or_check" jdbcType="INTEGER" property="orCheck" />
+  </resultMap>
+
+  <resultMap id="OrderClientResultMap" type="heu.iot.Model.OrderClient">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="cl_name" jdbcType="VARCHAR" property="clName" />
+    <result column="co_name" jdbcType="VARCHAR" property="coName" />
+    <result column="or_cid" jdbcType="INTEGER" property="orCid" />
+    <result column="or_eid" jdbcType="INTEGER" property="orEid" />
+    <result column="or_time" jdbcType="VARCHAR" property="orTime" />
+    <result column="or_start" jdbcType="VARCHAR" property="orStart" />
+    <result column="or_end" jdbcType="VARCHAR" property="orEnd" />
+    <result column="or_sgps" jdbcType="VARCHAR" property="orSgps" />
+    <result column="or_egps" jdbcType="VARCHAR" property="orEgps" />
+    <result column="or_price" jdbcType="REAL" property="orPrice" />
+    <result column="or_state" jdbcType="INTEGER" property="orState" />
+    <result column="or_check" jdbcType="INTEGER" property="orCheck" />
+    <result column="cl_tel" jdbcType="VARCHAR" property="cltel" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, or_cid, or_eid, or_time, or_start, or_end, or_sgps, or_egps, or_price, or_state, 
+    or_check
+  </sql>
+  <sql id="OrderClient_Column_List">
+    ta_order.id, cl_name, co_name, or_cid, or_eid, or_time, or_start, or_end, or_sgps, or_egps, or_price, or_state,
+    or_check, cl_tel
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from ta_order
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="showAllOrderClient" resultMap="OrderClientResultMap">
+    select
+    <include refid="OrderClient_Column_List" />
+    from ta_order,client,company
+    where ta_order.or_cid=client.id and client.cl_company=company.id order by ta_order.id desc
+  </select>
+  <select id="selectUncheckOrderClient" resultMap="OrderClientResultMap">
+    select
+    <include refid="OrderClient_Column_List" />
+    from ta_order,client,company
+    where ta_order.or_cid=client.id and client.cl_company=company.id and ta_order.or_check=0 order by ta_order.id desc
+  </select>
+  <select id="selectOrderClientByCompanyId" parameterType="java.lang.Integer" resultMap="OrderClientResultMap">
+    select
+    <include refid="OrderClient_Column_List" />
+    from ta_order,client,company
+    where ta_order.or_cid=client.id and client.cl_company=company.id and company.id= #{id,jdbcType=INTEGER} order by ta_order.id desc
+  </select>
+
+  <select id="selectOrderClientByEmploeeId" parameterType="java.lang.Integer" resultMap="OrderClientResultMap">
+    select
+    <include refid="OrderClient_Column_List" />
+    from ta_order,client,company
+    where ta_order.or_cid=client.id and client.cl_company=company.id and ta_order.or_eid= #{id,jdbcType=INTEGER} order by ta_order.id desc
+  </select>
+
+  <select id="selectOrderClientByEmploeeIdRecent1" parameterType="java.lang.Integer" resultMap="OrderClientResultMap">
+    select
+    <include refid="OrderClient_Column_List" />
+    from ta_order,client,company
+    where ta_order.or_cid=client.id and client.cl_company=company.id and ta_order.or_eid= #{id,jdbcType=INTEGER} order by ta_order.id desc limit 1
+  </select>
+
+  <select id="selectOrderClientByOrderId" parameterType="java.lang.Integer" resultMap="OrderClientResultMap">
+    select
+    <include refid="OrderClient_Column_List" />
+    from ta_order,client,company
+    where ta_order.or_cid=client.id and client.cl_company=company.id and ta_order.id= #{id,jdbcType=INTEGER}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from ta_order
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="heu.iot.Model.Order">
+    insert into ta_order (id, or_cid, or_eid,
+      or_time, or_start, or_end, 
+      or_sgps, or_egps, or_price, 
+      or_state, or_check)
+    values (#{id,jdbcType=INTEGER}, #{orCid,jdbcType=INTEGER}, #{orEid,jdbcType=INTEGER}, 
+      #{orTime,jdbcType=VARCHAR}, #{orStart,jdbcType=VARCHAR}, #{orEnd,jdbcType=VARCHAR}, 
+      #{orSgps,jdbcType=VARCHAR}, #{orEgps,jdbcType=VARCHAR}, #{orPrice,jdbcType=REAL}, 
+      #{orState,jdbcType=INTEGER}, #{orCheck,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="heu.iot.Model.Order">
+    insert into ta_order
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="orCid != null">
+        or_cid,
+      </if>
+      <if test="orEid != null">
+        or_eid,
+      </if>
+      <if test="orTime != null">
+        or_time,
+      </if>
+      <if test="orStart != null">
+        or_start,
+      </if>
+      <if test="orEnd != null">
+        or_end,
+      </if>
+      <if test="orSgps != null">
+        or_sgps,
+      </if>
+      <if test="orEgps != null">
+        or_egps,
+      </if>
+      <if test="orPrice != null">
+        or_price,
+      </if>
+      <if test="orState != null">
+        or_state,
+      </if>
+      <if test="orCheck != null">
+        or_check,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="orCid != null">
+        #{orCid,jdbcType=INTEGER},
+      </if>
+      <if test="orEid != null">
+        #{orEid,jdbcType=INTEGER},
+      </if>
+      <if test="orTime != null">
+        #{orTime,jdbcType=VARCHAR},
+      </if>
+      <if test="orStart != null">
+        #{orStart,jdbcType=VARCHAR},
+      </if>
+      <if test="orEnd != null">
+        #{orEnd,jdbcType=VARCHAR},
+      </if>
+      <if test="orSgps != null">
+        #{orSgps,jdbcType=VARCHAR},
+      </if>
+      <if test="orEgps != null">
+        #{orEgps,jdbcType=VARCHAR},
+      </if>
+      <if test="orPrice != null">
+        #{orPrice,jdbcType=REAL},
+      </if>
+      <if test="orState != null">
+        #{orState,jdbcType=INTEGER},
+      </if>
+      <if test="orCheck != null">
+        #{orCheck,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="heu.iot.Model.Order">
+    update ta_order
+    <set>
+      <if test="orCid != null">
+        or_cid = #{orCid,jdbcType=INTEGER},
+      </if>
+      <if test="orEid != null">
+        or_eid = #{orEid,jdbcType=INTEGER},
+      </if>
+      <if test="orTime != null">
+        or_time = #{orTime,jdbcType=VARCHAR},
+      </if>
+      <if test="orStart != null">
+        or_start = #{orStart,jdbcType=VARCHAR},
+      </if>
+      <if test="orEnd != null">
+        or_end = #{orEnd,jdbcType=VARCHAR},
+      </if>
+      <if test="orSgps != null">
+        or_sgps = #{orSgps,jdbcType=VARCHAR},
+      </if>
+      <if test="orEgps != null">
+        or_egps = #{orEgps,jdbcType=VARCHAR},
+      </if>
+      <if test="orPrice != null">
+        or_price = #{orPrice,jdbcType=REAL},
+      </if>
+      <if test="orState != null">
+        or_state = #{orState,jdbcType=INTEGER},
+      </if>
+      <if test="orCheck != null">
+        or_check = #{orCheck,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="heu.iot.Model.Order">
+    update ta_order
+    set or_cid = #{orCid,jdbcType=INTEGER},
+      or_eid = #{orEid,jdbcType=INTEGER},
+      or_time = #{orTime,jdbcType=VARCHAR},
+      or_start = #{orStart,jdbcType=VARCHAR},
+      or_end = #{orEnd,jdbcType=VARCHAR},
+      or_sgps = #{orSgps,jdbcType=VARCHAR},
+      or_egps = #{orEgps,jdbcType=VARCHAR},
+      or_price = #{orPrice,jdbcType=REAL},
+      or_state = #{orState,jdbcType=INTEGER},
+      or_check = #{orCheck,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

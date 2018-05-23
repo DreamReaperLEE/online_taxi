@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="heu.iot.Dao.EmploeeMapper">
+  <resultMap id="BaseResultMap" type="heu.iot.Model.Emploee">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="em_name" jdbcType="VARCHAR" property="emName" />
+    <result column="em_password" jdbcType="VARCHAR" property="emPassword" />
+    <result column="em_priv" jdbcType="INTEGER" property="emPriv" />
+    <result column="em_cartype" jdbcType="INTEGER" property="emCartype" />
+    <result column="em_tel" jdbcType="VARCHAR" property="emTel" />
+  </resultMap>
+  <resultMap id="EmploeeCarMap" type="heu.iot.Model.EmploeeCar">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="em_name" jdbcType="VARCHAR" property="emName" />
+    <result column="em_password" jdbcType="VARCHAR" property="emPassword" />
+    <result column="em_priv" jdbcType="INTEGER" property="emPriv" />
+    <result column="em_cartype" jdbcType="INTEGER" property="emCartype" />
+    <result column="ca_type" jdbcType="VARCHAR" property="caType" />
+    <result column="em_tel" jdbcType="VARCHAR" property="emTel" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, em_name, em_password, em_priv, em_cartype, em_tel
+  </sql>
+  <sql id="EmploeeCar_List">
+    emploee.id, emploee.em_name, emploee.em_password, emploee.em_priv, emploee.em_cartype, car.ca_type, emploee.em_tel
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from emploee
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="showAllDriver" resultMap="EmploeeCarMap">
+    select
+    <include refid="EmploeeCar_List" />
+    from emploee,car where emploee.em_priv=1 and emploee.em_cartype=car.id
+  </select>
+  <select id="showSelected" parameterType="java.lang.Integer" resultMap="EmploeeCarMap">
+    select
+    <include refid="EmploeeCar_List" />
+    from emploee,car where emploee.em_priv=1 and emploee.em_cartype=car.id and car.id= #{id,jdbcType=INTEGER}
+  </select>
+  <select id="checkPassword" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    from emploee
+    where id = #{id,jdbcType=INTEGER} and em_password = #{password,jdbcType=VARCHAR}
+  </select>
+  <select id="drivercheckPassword" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    from emploee
+    where em_tel = #{tel,jdbcType=INTEGER} and em_password = #{password,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from emploee
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="heu.iot.Model.Emploee">
+    insert into emploee (id, em_name, em_password, 
+      em_priv, em_cartype)
+    values (#{id,jdbcType=INTEGER}, #{emName,jdbcType=VARCHAR}, #{emPassword,jdbcType=VARCHAR}, 
+      #{emPriv,jdbcType=INTEGER}, #{emCartype,jdbcType=INTEGER}, #{emTel,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="heu.iot.Model.Emploee">
+    insert into emploee
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="emName != null">
+        em_name,
+      </if>
+      <if test="emPassword != null">
+        em_password,
+      </if>
+      <if test="emPriv != null">
+        em_priv,
+      </if>
+      <if test="emCartype != null">
+        em_cartype,
+      </if>
+      <if test="emTel != null">
+        em_tel,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="emName != null">
+        #{emName,jdbcType=VARCHAR},
+      </if>
+      <if test="emPassword != null">
+        #{emPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="emPriv != null">
+        #{emPriv,jdbcType=INTEGER},
+      </if>
+      <if test="emCartype != null">
+        #{emCartype,jdbcType=INTEGER},
+      </if>
+      <if test="emTel != null">
+        #{emTel,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="heu.iot.Model.Emploee">
+    update emploee
+    <set>
+      <if test="emName != null">
+        em_name = #{emName,jdbcType=VARCHAR},
+      </if>
+      <if test="emPassword != null">
+        em_password = #{emPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="emPriv != null">
+        em_priv = #{emPriv,jdbcType=INTEGER},
+      </if>
+      <if test="emCartype != null">
+        em_cartype = #{emCartype,jdbcType=INTEGER},
+      </if>
+      <if test="emTel != null">
+        em_tel = #{emTel,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updatePassword" parameterType="map">
+    update emploee
+    set em_password = #{password,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER} and em_password = #{origin,jdbcType=VARCHAR}
+  </update>
+
+  <update id="updateByPrimaryKey" parameterType="heu.iot.Model.Emploee">
+    update emploee
+    set em_name = #{emName,jdbcType=VARCHAR},
+      em_password = #{emPassword,jdbcType=VARCHAR},
+      em_priv = #{emPriv,jdbcType=INTEGER},
+      em_cartype = #{emCartype,jdbcType=INTEGER}
+      em_tel = #{emTel,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
